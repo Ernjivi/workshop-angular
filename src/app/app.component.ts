@@ -1,4 +1,9 @@
 import { Component } from '@angular/core';
+import { AuthService } from './services/auth/auth.service';
+
+import { Router } from "@angular/router";
+
+import * as firebase from "firebase/app";
 
 @Component({
   selector: 'app-root',
@@ -6,5 +11,17 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'app';
+  constructor(
+    private authService:AuthService,
+    private router: Router
+  ){
+    this.authService.user
+      .subscribe((user: firebase.User) => {
+        if(!user){
+          this.router.navigate(['/login']);
+        } else{
+          this.router.navigate(['/']);
+        }
+      });
+  }
 }

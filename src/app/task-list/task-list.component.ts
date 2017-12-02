@@ -1,4 +1,11 @@
 import { Component, OnInit } from '@angular/core';
+import { AngularFireDatabase, AngularFireList } from "angularfire2/database";
+import { AuthService } from '../services/auth/auth.service';
+
+import 'rxjs/add/operator/map';
+
+import * as firebase from "firebase/app";
+import { Observable } from 'rxjs/Observable';
 
 @Component({
   selector: 'app-task-list',
@@ -7,28 +14,38 @@ import { Component, OnInit } from '@angular/core';
 })
 export class TaskListComponent implements OnInit {
 
-  private taskList: any[];
+  private taskListRef: AngularFireList<any>;
+  private taskList: Observable<any[]>;
 
-  constructor() { }
+  constructor(
+    private db: AngularFireDatabase,
+    private authService: AuthService
+  ) { }
 
   ngOnInit() {
-    this.taskList = [
-      { status: false, text: 'Tarea 1' },
-      { status: false, text: 'Tarea 2' },
-      { status: false, text: 'Tarea 3' },
-      { status: false, text: 'Tarea 4' },
-      { status: false, text: 'Tarea 5' },
-    ]
+
+    this.authService.user
+      .map((user: firebase.User) => user.uid)
+      .subscribe((uid: string) => {
+        this.taskListRef = this.db.list(`tasks/${uid}`);
+        this.taskList = this.taskListRef.snapshotChanges().map(changes => {
+          return changes.map(c => ({ key: c.payload.key, ...c.payload.val() }));
+        });
+      })
   }
 
   addTask(task): void{
     // console.log(task.value);
-    this.taskList.push({ text: task.value, status: false });
+    this.taskListRef.push({ text: task.value, status: false });
     task.value = "";
   }
 
-  deleteTask(index){
-    this.taskList.splice(index, 1);
+  deleteTask(task){
+    this.taskListRef.remove(task.key);
+  }
+
+  updateTask(task){
+    this.taskListRef.update(task.key, {status: !task.status});
   }
 
 }
