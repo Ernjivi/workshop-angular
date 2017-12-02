@@ -1,0 +1,13 @@
+<div>
+  <input type="text" #taskText>
+  <button (click)="addTask(taskText)">Añadir Tarea</button>
+</div>
+<div>
+    <ul>
+      <li *ngFor="let task of taskList; index as i">
+        {{ task.text }}
+        <input type="checkbox" [(ngModel)]="task.status">
+        <button (click)="deleteTask(i)">Delete</button>
+      </li>
+    </ul>
+</div>
